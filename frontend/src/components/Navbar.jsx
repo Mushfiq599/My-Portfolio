@@ -19,16 +19,16 @@ const Navbar = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
-      className="fixed w-full top-0 z-50 glass border-b border-slate-700"
+      className="fixed w-full top-0 z-50 bg-slate-950/75 backdrop-blur-xl border-b border-slate-800"
     >
       <div className="container-custom flex justify-between items-center py-4 px-6">
         {/* Logo */}
         <motion.div
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="text-2xl font-bold gradient-text cursor-pointer"
+          className="text-2xl font-bold text-white cursor-pointer"
         >
-          Portfolio
+          <span className="text-cyan-300">MERN</span> Portfolio
         </motion.div>
 
         {/* Desktop Menu */}

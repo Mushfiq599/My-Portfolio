@@ -24,80 +24,99 @@ const Hero = () => {
   };
 
   return (
-    <section
-      id="home"
-      className="section min-h-screen flex items-center justify-center pt-20 relative overflow-hidden"
-    >
-      {/* Animated Background */}
+    <section id="home" className="section min-h-screen relative overflow-hidden pt-24">
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
-        <div className="absolute bottom-20 right-10 w-72 h-72 bg-secondary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-accent rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-float animation-delay-4000"></div>
+        <div className="absolute top-14 left-10 w-80 h-80 bg-cyan-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-float"></div>
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-purple-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-float"></div>
+        <div className="absolute inset-x-0 bottom-0 h-96 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent"></div>
       </div>
 
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="container-custom text-center space-y-8"
+        className="container-custom grid gap-12 lg:grid-cols-[1.1fr_0.9fr] items-center"
       >
-        {/* Main Title */}
-        <motion.h1
-          variants={itemVariants}
-          className="text-5xl md:text-7xl font-bold gradient-text mb-4"
-        >
-          Hi, I'm a MERN Developer
-        </motion.h1>
+        <div className="space-y-8 py-8 lg:py-0">
+          <motion.p
+            variants={itemVariants}
+            className="text-sm uppercase tracking-[0.35em] text-cyan-400"
+          >
+            Portfolio Banner
+          </motion.p>
 
-        {/* Subtitle */}
-        <motion.p
-          variants={itemVariants}
-          className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto"
-        >
-          Building modern, scalable web applications with MongoDB, Express, React, and Node.js
-        </motion.p>
+          <motion.div variants={itemVariants} className="space-y-4">
+            <h1 className="text-5xl md:text-6xl xl:text-7xl font-bold leading-tight text-white">
+              Hi, I’m <span className="text-cyan-300">Your Name</span>
+            </h1>
+            <p className="text-4xl md:text-5xl font-semibold text-slate-200">
+              MERN Stack Developer
+            </p>
+          </motion.div>
 
-        {/* Description */}
-        <motion.p
-          variants={itemVariants}
-          className="text-lg text-slate-400 max-w-2xl mx-auto"
-        >
-          I create beautiful, functional digital experiences that solve real-world problems.
-        </motion.p>
+          <motion.p
+            variants={itemVariants}
+            className="max-w-3xl text-lg md:text-xl text-slate-400 leading-9"
+          >
+            I help businesses launch high-performing web products with clean interfaces, readable code, and a polished experience that feels premium.
+          </motion.p>
 
-        {/* CTA Buttons */}
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
+            <ScrollLink to="projects" smooth className="w-full sm:w-auto">
+              <button className="btn-primary w-full">See My Projects</button>
+            </ScrollLink>
+            <ScrollLink to="contact" smooth className="w-full sm:w-auto">
+              <button className="btn-secondary w-full">Let’s Talk</button>
+            </ScrollLink>
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { label: 'Clients', value: '12+' },
+              { label: 'Projects', value: '18+' },
+              { label: 'Stack', value: 'MERN' },
+            ].map((stat, index) => (
+              <div key={index} className="glass rounded-3xl p-5 border border-slate-700 shadow-neon-secondary">
+                <p className="text-3xl font-semibold text-white">{stat.value}</p>
+                <p className="text-slate-400 mt-2">{stat.label}</p>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+
         <motion.div
           variants={itemVariants}
-          className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8"
+          className="relative rounded-[40px] border border-slate-700 bg-slate-900/80 p-6 shadow-neon"
         >
-          <ScrollLink to="projects" smooth>
-            <motion.button
-              whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(93, 107, 255, 0.6)' }}
-              whileTap={{ scale: 0.95 }}
-              className="btn-primary"
-            >
-              View My Work
-            </motion.button>
-          </ScrollLink>
+          <div className="absolute -top-8 left-8 rounded-full bg-cyan-500/20 px-5 py-3 text-sm text-cyan-200 backdrop-blur-xl border border-cyan-500/20">
+            Animated Profile
+          </div>
 
-          <ScrollLink to="contact" smooth>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="btn-secondary"
-            >
-              Get In Touch
-            </motion.button>
-          </ScrollLink>
-        </motion.div>
+          <div className="h-full rounded-[30px] border border-slate-800 bg-gradient-to-br from-slate-950 to-slate-900 p-6">
+            <div className="relative overflow-hidden rounded-[30px] border border-slate-700 bg-slate-950 shadow-2xl shadow-slate-950/60">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.2),transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(139,92,246,0.18),transparent_25%)]" />
+              <div className="relative flex h-[520px] flex-col items-center justify-between p-6">
+                <div className="flex items-center gap-4 rounded-3xl bg-slate-900/90 px-4 py-3 border border-slate-700">
+                  <div className="h-3 w-3 rounded-full bg-cyan-300 animate-pulse" />
+                  <p className="text-sm uppercase tracking-[0.28em] text-slate-300">Now available</p>
+                </div>
 
-        {/* Scroll Indicator */}
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="pt-12"
-        >
-          <div className="text-primary-400 text-3xl">↓</div>
+                <div className="relative flex h-full w-full items-center justify-center">
+                  <div className="absolute inset-0 rounded-[24px] bg-gradient-to-br from-cyan-500/10 via-transparent to-pink-500/10 blur-3xl" />
+                  <div className="relative z-10 flex h-72 w-72 items-center justify-center rounded-full bg-slate-800/95 border border-slate-700 shadow-[0_25px_80px_-40px_rgba(59,130,246,0.8)]">
+                    <div className="flex h-64 w-64 items-center justify-center rounded-full bg-slate-950 text-slate-400 text-4xl font-bold">YOU</div>
+                  </div>
+                </div>
+
+                <div className="w-full rounded-3xl bg-slate-900/90 p-5 text-slate-300 border border-slate-700">
+                  <p className="text-lg font-semibold text-white">Interactive profile</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-400">
+                    Replace the card with your photo or animated portrait. This area is designed for the bold visual presence your portfolio needs.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </motion.div>
       </motion.div>
     </section>

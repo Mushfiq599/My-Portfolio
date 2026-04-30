@@ -14,7 +14,9 @@ html {
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: radial-gradient(circle at top, rgba(34, 211, 238, 0.12), transparent 28%),
+    radial-gradient(circle at 20% 15%, rgba(236, 72, 153, 0.08), transparent 22%),
+    linear-gradient(180deg, #020617 0%, #0f172a 48%, #07101d 100%);
   color: #f8fafc;
   overflow-x: hidden;
 }
@@ -48,20 +50,20 @@ body {
 
 /* Custom button styles */
 .btn-primary {
-  @apply px-6 py-3 rounded-lg font-semibold bg-gradient-primary text-white hover:shadow-neon transition-all duration-300 transform hover:-translate-y-1;
+  @apply px-6 py-3 rounded-3xl font-semibold bg-gradient-to-r from-cyan-500 to-violet-500 text-white shadow-neon hover:shadow-neon-secondary transition-all duration-300 transform hover:-translate-y-1;
 }
 
 .btn-secondary {
-  @apply px-6 py-3 rounded-lg font-semibold border border-primary-500 text-primary-400 hover:bg-primary-500 hover:text-white transition-all duration-300;
+  @apply px-6 py-3 rounded-3xl font-semibold border border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 hover:text-white transition-all duration-300;
 }
 
 /* Card styles */
 .card {
-  @apply bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700 hover:border-primary-500 transition-all duration-300;
+  @apply bg-gradient-to-br from-slate-900 to-slate-950 rounded-[28px] p-6 border border-slate-800 hover:border-cyan-500/30 transition-all duration-300;
 }
 
 .card-hover {
-  @apply hover:shadow-neon hover:border-primary-500 transform hover:-translate-y-2;
+  @apply hover:shadow-neon-secondary hover:border-cyan-500/30 transform hover:-translate-y-2;
 }
 
 /* Section spacing */
@@ -76,7 +78,7 @@ body {
 
 /* Glassmorphism effect */
 .glass {
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.18);
 }
