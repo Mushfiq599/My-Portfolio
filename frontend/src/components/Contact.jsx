@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { contactAPI } from '../utils/api';
-import { FaGithub, FaLinkedin, FaTwitter, FaEnvelope } from 'react-icons/fa';
+import { FaGithub, FaLinkedin, FaTwitter, FaEnvelope, FaInstagram } from 'react-icons/fa';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -168,6 +168,7 @@ const Contact = () => {
                   { icon: FaGithub, link: '#' },
                   { icon: FaLinkedin, link: '#' },
                   { icon: FaTwitter, link: '#' },
+                  { icon: FaInstagram, link: 'https://www.instagram.com/mushfiq.ur/' },
                 ].map((social, index) => (
                   <motion.a
                     key={index}

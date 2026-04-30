@@ -28,7 +28,7 @@ const Navbar = () => {
           whileTap={{ scale: 0.95 }}
           className="text-2xl font-bold text-white cursor-pointer"
         >
-          <span className="text-cyan-300">MERN</span> Portfolio
+          <span className="text-cyan-300">Portfolio</span> 
         </motion.div>
 
         {/* Desktop Menu */}
@@ -96,3 +96,13 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+
+
+// // For Skills section add.
+// as frontend, html, css, tailwind, js, bootstrap, react, next , php etc.
+// as backend add node, express, firebase, rest api, context api, authjs
+// as db add mongodb mysql
+// // and for tools add git , npm , vite.js , figma vercel netlify
+
+// // add these withe their icons

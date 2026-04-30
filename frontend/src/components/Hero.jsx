@@ -47,7 +47,7 @@ const Hero = () => {
 
           <motion.div variants={itemVariants} className="space-y-4">
             <h1 className="text-5xl md:text-6xl xl:text-7xl font-bold leading-tight text-white">
-              Hi, I’m <span className="text-cyan-300">Your Name</span>
+              Hi, I’m <span className="text-cyan-300">Mushfiq</span>
             </h1>
             <p className="text-4xl md:text-5xl font-semibold text-slate-200">
               MERN Stack Developer
@@ -103,15 +103,27 @@ const Hero = () => {
 
                 <div className="relative flex h-full w-full items-center justify-center">
                   <div className="absolute inset-0 rounded-[24px] bg-gradient-to-br from-cyan-500/10 via-transparent to-pink-500/10 blur-3xl" />
-                  <div className="relative z-10 flex h-72 w-72 items-center justify-center rounded-full bg-slate-800/95 border border-slate-700 shadow-[0_25px_80px_-40px_rgba(59,130,246,0.8)]">
-                    <div className="flex h-64 w-64 items-center justify-center rounded-full bg-slate-950 text-slate-400 text-4xl font-bold">YOU</div>
+                  <motion.div
+                    whileHover={{ scale: 1.04, rotate: 1 }}
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                    className="relative z-10 flex h-72 w-72 items-center justify-center rounded-full bg-slate-800/95 border border-slate-700 shadow-[0_25px_80px_-40px_rgba(59,130,246,0.8)]"
+                  >
+                    <img
+                      src="https://i.ibb.co.com/4Z9Y0LdK/Chat-GPT-Image-Jun-20-2025-12-05-30-PM.pnghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80"
+                      alt="Profile"
+                      className="h-64 w-64 rounded-full object-cover border-4 border-cyan-400/20"
+                    />
+                  </motion.div>
+                  <div className="absolute -left-8 top-8 rounded-full bg-cyan-500/15 px-4 py-2 text-xs uppercase tracking-[0.28em] text-cyan-200 border border-cyan-500/20 backdrop-blur-xl">
+                    Animated Portrait
                   </div>
                 </div>
 
-                <div className="w-full rounded-3xl bg-slate-900/90 p-5 text-slate-300 border border-slate-700">
-                  <p className="text-lg font-semibold text-white">Interactive profile</p>
+                <div className="mt-6 w-full rounded-3xl bg-slate-900/90 p-5 text-slate-300 border border-slate-700">
+                  <p className="text-lg font-semibold text-white">Meet the developer</p>
                   <p className="mt-3 text-sm leading-6 text-slate-400">
-                    Replace the card with your photo or animated portrait. This area is designed for the bold visual presence your portfolio needs.
+                    This is a portrait placeholder — swap this image with your own photo or illustration. The card now feels more personal and dynamic.
                   </p>
                 </div>
               </div>
