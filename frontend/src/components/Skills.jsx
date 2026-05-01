@@ -1,25 +1,34 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { skillsAPI } from '../utils/api';
+import { FaHtml5, FaCss3Alt, FaBootstrap, FaReact, FaNodeJs, FaPhp, FaGitAlt, FaNpm, FaFigma } from 'react-icons/fa';
+import { SiTailwindcss, SiJavascript, SiNextdotjs, SiExpress, SiFirebase, SiMongodb, SiMysql, SiVite, SiNetlify, SiVercel } from 'react-icons/si';
+import { AiOutlineApi, AiOutlineLock } from 'react-icons/ai';
 
 const Skills = () => {
-  const [skills, setSkills] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchSkills();
-  }, []);
-
-  const fetchSkills = async () => {
-    try {
-      const response = await skillsAPI.getAll();
-      setSkills(response.data);
-    } catch (error) {
-      console.error('Error fetching skills:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const skills = [
+    { category: 'frontend', name: 'HTML', icon: FaHtml5, iconClass: 'text-orange-400' },
+    { category: 'frontend', name: 'CSS', icon: FaCss3Alt, iconClass: 'text-sky-400' },
+    { category: 'frontend', name: 'Tailwind', icon: SiTailwindcss, iconClass: 'text-cyan-400' },
+    { category: 'frontend', name: 'JavaScript', icon: SiJavascript, iconClass: 'text-yellow-400' },
+    { category: 'frontend', name: 'Bootstrap', icon: FaBootstrap, iconClass: 'text-violet-400' },
+    { category: 'frontend', name: 'React', icon: FaReact, iconClass: 'text-sky-300' },
+    { category: 'frontend', name: 'Next.js', icon: SiNextdotjs, iconClass: 'text-slate-100' },
+    { category: 'frontend', name: 'PHP', icon: FaPhp, iconClass: 'text-indigo-400' },
+    { category: 'backend', name: 'Node.js', icon: FaNodeJs, iconClass: 'text-lime-400' },
+    { category: 'backend', name: 'Express', icon: SiExpress, iconClass: 'text-slate-300' },
+    { category: 'backend', name: 'Firebase', icon: SiFirebase, iconClass: 'text-orange-400' },
+    { category: 'backend', name: 'REST API', icon: AiOutlineApi, iconClass: 'text-cyan-300' },
+    { category: 'backend', name: 'Context API', icon: FaReact, iconClass: 'text-sky-300' },
+    { category: 'backend', name: 'Auth.js', icon: AiOutlineLock, iconClass: 'text-fuchsia-400' },
+    { category: 'database', name: 'MongoDB', icon: SiMongodb, iconClass: 'text-emerald-400' },
+    { category: 'database', name: 'MySQL', icon: SiMysql, iconClass: 'text-blue-400' },
+    { category: 'tools', name: 'Git', icon: FaGitAlt, iconClass: 'text-orange-400' },
+    { category: 'tools', name: 'npm', icon: FaNpm, iconClass: 'text-red-400' },
+    { category: 'tools', name: 'Vite', icon: SiVite, iconClass: 'text-fuchsia-400' },
+    { category: 'tools', name: 'Figma', icon: FaFigma, iconClass: 'text-pink-400' },
+    { category: 'tools', name: 'Vercel', icon: SiVercel, iconClass: 'text-white' },
+    { category: 'tools', name: 'Netlify', icon: SiNetlify, iconClass: 'text-cyan-300' },
+  ];
 
   const categories = ['frontend', 'backend', 'database', 'tools'];
 
@@ -85,16 +94,20 @@ const Skills = () => {
                 className="flex flex-wrap gap-3"
               >
                 {skillsByCategory[category].length > 0 ? (
-                  skillsByCategory[category].map((skill) => (
-                    <motion.div
-                      key={skill._id}
-                      variants={itemVariants}
-                      whileHover={{ scale: 1.05 }}
-                      className="px-4 py-2 bg-primary-600 bg-opacity-20 border border-primary-500 rounded-full text-primary-300 hover:bg-opacity-40 transition-all"
-                    >
-                      {skill.name}
-                    </motion.div>
-                  ))
+                  skillsByCategory[category].map((skill) => {
+                    const Icon = skill.icon;
+                    return (
+                      <motion.div
+                        key={`${category}-${skill.name}`}
+                        variants={itemVariants}
+                        whileHover={{ scale: 1.05 }}
+                        className="flex items-center gap-3 px-4 py-2 bg-slate-900/75 border border-slate-700 rounded-full text-slate-100 hover:border-cyan-400 transition-all"
+                      >
+                        {Icon && <Icon className={`text-xl ${skill.iconClass}`} />}
+                        <span>{skill.name}</span>
+                      </motion.div>
+                    );
+                  })
                 ) : (
                   <p className="text-slate-500">No skills added yet</p>
                 )}

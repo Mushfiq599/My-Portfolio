@@ -110,7 +110,7 @@ const Hero = () => {
                     className="relative z-10 flex h-72 w-72 items-center justify-center rounded-full bg-slate-800/95 border border-slate-700 shadow-[0_25px_80px_-40px_rgba(59,130,246,0.8)]"
                   >
                     <img
-                      src="https://i.ibb.co.com/4Z9Y0LdK/Chat-GPT-Image-Jun-20-2025-12-05-30-PM.pnghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80"
+                      src="https://i.ibb.co.com/JwbKQkTd/IMG-20251231-103930-jpg.jpg"
                       alt="Profile"
                       className="h-64 w-64 rounded-full object-cover border-4 border-cyan-400/20"
                     />
