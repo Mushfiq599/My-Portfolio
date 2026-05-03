@@ -1,137 +1,184 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { FaGithub, FaExternalLinkAlt } from 'react-icons/fa';
-import { projectsAPI } from '../utils/api';
+import React, { useState, useEffect } from 'react';
+import '../styles/Projects.css';
+import { FaGithub, FaExternalLinkAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
-const Projects = () => {
-  const [projects, setProjects] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [loading, setLoading] = useState(true);
+const GITHUB_USER = 'Mushfiq599';
+const GITHUB_URL = `https://github.com/${GITHUB_USER}`;
+
+const featuredProjects = [
+  {
+    title: 'Care.xyz',
+    description: 'A trusted care platform for families, connecting verified caretakers with children, elderly parents, and sick family members.',
+    technologies: ['React', 'Node.js', 'MongoDB'],
+    github: `https://github.com/${GITHUB_USER}/care-xyz`,
+    live: `https://github.com/${GITHUB_USER}/care-xyz`,
+    image: 'https://i.ibb.co.com/zHB78qS7/Screenshot-354.png'
+  },
+  {
+    title: 'StyleDecor-client',
+    description: 'A premium decor landing page with vibrant visuals and smooth UX for decoration services and event styling.',
+    technologies: ['React', 'CSS', 'UI Design'],
+    github: `https://github.com/${GITHUB_USER}/stleDecor-client`,
+    live: `https://github.com/${GITHUB_USER}/stleDecor-client`,
+    image: 'https://i.ibb.co.com/CpvMLn9T/Screenshot-356.png'
+  },
+  {
+    title: 'HomeHero-client',
+    description: 'A clean home services UI with booking, service management, and responsive navigation for clients.',
+    technologies: ['React', 'REST API', 'Tailwind'],
+    github: `https://github.com/${GITHUB_USER}/HomeHero-client`,
+    live: `https://github.com/${GITHUB_USER}/HomeHero-client`,
+    image: 'https://i.ibb.co.com/bRRPVZK8/Screenshot-357.png'
+  }
+];
+
+function formatGitHubEvent(event) {
+  const repoName = event.repo?.name || 'a repository';
+  const date = new Date(event.created_at).toLocaleDateString();
+
+  switch (event.type) {
+    case 'PushEvent':
+      return `${event.actor?.login} pushed ${event.payload?.size || 1} commit${event.payload?.size === 1 ? '' : 's'} to ${repoName} · ${date}`;
+    case 'PullRequestEvent':
+      return `${event.actor?.login} ${event.payload?.action} a pull request in ${repoName} · ${date}`;
+    case 'IssuesEvent':
+      return `${event.actor?.login} ${event.payload?.action} an issue in ${repoName} · ${date}`;
+    case 'CreateEvent':
+      return `${event.actor?.login} created ${event.payload?.ref_type} in ${repoName} · ${date}`;
+    default:
+      return `${event.actor?.login} contributed to ${repoName} · ${date}`;
+  }
+}
+
+export default function Projects() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [activity, setActivity] = useState([]);
+  const [loadingActivity, setLoadingActivity] = useState(true);
+  const [error, setError] = useState(null);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev === 0 ? featuredProjects.length - 1 : prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev === featuredProjects.length - 1 ? 0 : prev + 1));
+  };
+
+  const currentProject = featuredProjects[currentIndex];
 
   useEffect(() => {
-    fetchProjects();
+    const fetchActivity = async () => {
+      try {
+        const response = await fetch(`https://api.github.com/users/${GITHUB_USER}/events/public?per_page=6`);
+        if (!response.ok) {
+          throw new Error('Unable to fetch GitHub activity');
+        }
+        const data = await response.json();
+        setActivity(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoadingActivity(false);
+      }
+    };
+
+    fetchActivity();
   }, []);
 
-  const fetchProjects = async () => {
-    try {
-      const response = await projectsAPI.getAll({
-        featured: true,
-      });
-      setProjects(response.data);
-    } catch (error) {
-      console.error('Error fetching projects:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 },
-    },
-  };
-
   return (
-    <section id="projects" className="section">
-      <div className="container-custom">
-        {/* Section Title */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold gradient-text mb-4">Featured Projects</h2>
-          <p className="text-slate-400 text-lg">Showcasing my latest work</p>
-        </motion.div>
+    <section id="work" className="projects">
+      <div className="projects-container">
+        <div className="section-header">
+          <h2>Featured GitHub Projects</h2>
+          <p>Project snapshots from my portfolio and GitHub repos</p>
+        </div>
 
-        {/* Projects Grid */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-        >
-          {projects.length > 0 ? (
-            projects.map((project) => (
-              <motion.div
-                key={project._id}
-                variants={itemVariants}
-                whileHover={{ y: -10 }}
-                className="card card-hover group overflow-hidden"
-              >
-                {/* Project Image */}
-                <div className="relative overflow-hidden rounded-lg mb-4 h-48 bg-slate-700">
-                  <img
-                    src={project.image || 'https://via.placeholder.com/300x200?text=Project'}
-                    alt={project.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                    {project.githubLink && (
-                      <a
-                        href={project.githubLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-primary-600 p-3 rounded-full hover:bg-primary-700 transition-colors"
-                      >
-                        <FaGithub size={20} />
-                      </a>
-                    )}
-                    {project.liveLink && (
-                      <a
-                        href={project.liveLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-secondary-600 p-3 rounded-full hover:bg-secondary-700 transition-colors"
-                      >
-                        <FaExternalLinkAlt size={20} />
-                      </a>
-                    )}
-                  </div>
+        <div className="project-slider">
+          <div className="slider-card" key={currentProject.title}>
+            <div className="project-image">
+              <img src={currentProject.image} alt={currentProject.title} />
+              <div className="project-overlay">
+                <div className="project-links">
+                  <a href={currentProject.github} target="_blank" rel="noreferrer" className="project-link" title="View Code">
+                    <FaGithub />
+                  </a>
+                  <a href={currentProject.live} target="_blank" rel="noreferrer" className="project-link" title="View Repo">
+                    <FaExternalLinkAlt />
+                  </a>
                 </div>
+              </div>
+            </div>
 
-                {/* Project Info */}
-                <h3 className="text-xl font-bold text-white mb-2">{project.title}</h3>
-                <p className="text-slate-400 text-sm mb-4 line-clamp-2">{project.description}</p>
+            <div className="project-content">
+              <h3>{currentProject.title}</h3>
+              <p className="project-description">{currentProject.description}</p>
 
-                {/* Technologies */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {project.technologies?.slice(0, 3).map((tech, index) => (
-                    <span
-                      key={index}
-                      className="text-xs bg-primary-600 bg-opacity-20 text-primary-300 px-2 py-1 rounded"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </motion.div>
-            ))
+              <div className="project-technologies">
+                {currentProject.technologies.map((tech, techIndex) => (
+                  <span key={techIndex} className="tech-tag">
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="slider-controls">
+            <button className="slider-arrow" onClick={handlePrev} aria-label="Previous project">
+              <FaChevronLeft />
+            </button>
+            <button className="slider-arrow" onClick={handleNext} aria-label="Next project">
+              <FaChevronRight />
+            </button>
+          </div>
+
+          <div className="slider-dots">
+            {featuredProjects.map((_, index) => (
+              <button
+                key={index}
+                className={`slider-dot ${index === currentIndex ? 'active' : ''}`}
+                onClick={() => setCurrentIndex(index)}
+                aria-label={`Show project ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="projects-footer">
+          <h3>Want to see more?</h3>
+          <p>Explore my GitHub profile to view all projects and contributions.</p>
+          <button className="btn-secondary" onClick={() => window.open(GITHUB_URL, '_blank')}>
+            View GitHub Profile
+          </button>
+        </div>
+
+        <div className="activity-panel">
+          <div className="section-header activity-header">
+            <h2>Recent GitHub Activity</h2>
+            <p>Latest contributions from my GitHub account</p>
+          </div>
+
+          {loadingActivity ? (
+            <p className="projects-loading">Loading activity...</p>
           ) : (
-            <div className="col-span-full text-center text-slate-400">
-              {loading ? 'Loading projects...' : 'No projects found'}
+            <div className="activity-list">
+              {error && <p className="projects-error">{error}</p>}
+              {activity.length > 0 ? (
+                activity.map((event, index) => (
+                  <div key={`${event.id || index}`} className="activity-card">
+                    <p>{formatGitHubEvent(event)}</p>
+                    <a href={`https://github.com/${event.repo?.name}`} target="_blank" rel="noreferrer">
+                      View Repository
+                    </a>
+                  </div>
+                ))
+              ) : (
+                <p className="projects-loading">No recent activity available.</p>
+              )}
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
-};
-
-export default Projects;
+}
