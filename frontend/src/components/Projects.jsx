@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../styles/Projects.css';
 import { FaGithub, FaExternalLinkAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
@@ -65,6 +65,31 @@ export default function Projects() {
   };
 
   const currentProject = featuredProjects[currentIndex];
+  const sliderRef = useRef(null);
+
+  useEffect(() => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+
+    const handleMouseMove = (event) => {
+      const rect = slider.getBoundingClientRect();
+      slider.style.setProperty('--mouse-x', `${event.clientX - rect.left}px`);
+      slider.style.setProperty('--mouse-y', `${event.clientY - rect.top}px`);
+      slider.classList.add('mouse-visible');
+    };
+
+    const handleMouseLeave = () => {
+      slider.classList.remove('mouse-visible');
+    };
+
+    slider.addEventListener('mousemove', handleMouseMove);
+    slider.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      slider.removeEventListener('mousemove', handleMouseMove);
+      slider.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchActivity = async () => {
@@ -93,7 +118,7 @@ export default function Projects() {
           <p>Project snapshots from my portfolio and GitHub repos</p>
         </div>
 
-        <div className="project-slider">
+        <div className="project-slider" ref={sliderRef}>
           <div className="slider-card" key={currentProject.title}>
             <div className="project-image">
               <img src={currentProject.image} alt={currentProject.title} />
@@ -122,6 +147,8 @@ export default function Projects() {
               </div>
             </div>
           </div>
+
+          <div className="mouse-follow"></div>
 
           <div className="slider-controls">
             <button className="slider-arrow" onClick={handlePrev} aria-label="Previous project">

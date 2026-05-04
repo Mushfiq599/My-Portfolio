@@ -34,23 +34,26 @@
   margin: 0 auto 3rem;
   max-width: 760px;
   width: min(100%, 760px);
+  overflow: hidden;
 }
 
 .slider-card {
-  background: linear-gradient(135deg, rgba(196, 129, 255, 0.05), rgba(200, 191, 255, 0.02));
+  background: rgba(18, 12, 28, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
   border-radius: 32px;
   overflow: hidden;
-  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
   display: block;
   box-shadow: 0 40px 90px rgba(0, 0, 0, 0.16);
   animation: fadeInUp 0.55s ease both;
 }
 
-.slider-card:hover {
+.slider-card:hover,
+.project-slider.mouse-visible .slider-card {
   transform: translateY(-6px);
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.2);
-  border-color: rgba(196, 129, 255, 0.35);
+  box-shadow: 0 50px 120px rgba(196, 129, 255, 0.22);
+  border-color: rgba(196, 129, 255, 0.45);
 }
 
 .project-image {
@@ -223,6 +226,34 @@
   50% {
     transform: translateY(-6px) scale(1.02);
   }
+}
+
+.mouse-follow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50px;
+  height: 50px;
+  pointer-events: none;
+  border: 2px solid rgba(196, 129, 255, 0.7);
+  border-radius: 50%;
+  transform: translate(calc(var(--mouse-x, 0px) - 50%), calc(var(--mouse-y, 0px) - 50%));
+  opacity: 0;
+  transition: transform 0.08s ease-out, opacity 0.18s ease;
+  mix-blend-mode: screen;
+  z-index: 5;
+}
+
+.project-slider.mouse-visible .mouse-follow {
+  opacity: 1;
+}
+
+.mouse-follow::after {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  background: rgba(196, 129, 255, 0.85);
+  border-radius: 50%;
 }
 
   .repo-meta {

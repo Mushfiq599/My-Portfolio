@@ -61,8 +61,8 @@ export default function Hero() {
         <div className="hero-visual">
           <div className="visual-placeholder">
             <div className="placeholder-content">
-              <span>Your 3D Model</span>
-              <p>Add your GLTF model here</p>
+              <span>3D Model</span>
+              <p>Mushfiq</p>
             </div>
           </div>
         </div>
