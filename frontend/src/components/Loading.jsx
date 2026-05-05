@@ -21,6 +21,14 @@ export default function Loading({ onLoadComplete }) {
 
   return (
     <div className="loading-screen" style={{ opacity: progress >= 100 ? 0 : 1 }}>
+      <div className="loading-bg-text">
+        <div className="loading-ticker">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <span key={index}>Full Stack Developer</span>
+          ))}
+        </div>
+      </div>
+
       <div className="loading-container">
         <h1>Portfolio</h1>
         <div className="progress-bar">

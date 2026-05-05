@@ -199,3 +199,46 @@ button {
     min-height: auto;
   }
 }
+
+.global-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.72);
+  border: 2px solid rgba(196, 129, 255, 0.85);
+  background: rgba(196, 129, 255, 0.08);
+  box-shadow: 0 0 0 6px rgba(196, 129, 255, 0.08), 0 0 0 15px rgba(196, 129, 255, 0.04);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease, transform 0.16s cubic-bezier(0.17, 0.67, 0.46, 1.24), box-shadow 0.18s ease, background 0.18s ease;
+  z-index: 9999;
+  mix-blend-mode: screen;
+}
+
+.global-cursor.visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  box-shadow: 0 0 0 8px rgba(196, 129, 255, 0.18), 0 0 0 24px rgba(196, 129, 255, 0.06);
+}
+
+.global-cursor.interactive {
+  width: 70px;
+  height: 70px;
+  transform: translate(-50%, -50%) scale(1.05);
+  border-color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 10px rgba(196, 129, 255, 0.22), 0 0 0 30px rgba(196, 129, 255, 0.08);
+}
+
+.global-cursor.interactive::before {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  opacity: 0.8;
+  transform: scale(1);
+}
