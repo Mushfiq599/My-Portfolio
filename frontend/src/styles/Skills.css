@@ -48,9 +48,9 @@
 
 .skill-category:hover {
   border-color: var(--primary);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(196, 129, 255, 0.2);
   background: linear-gradient(135deg, rgba(196, 129, 255, 0.1), rgba(200, 191, 255, 0.05));
-  transform: translateY(-5px);
-  box-shadow: 0 0 30px rgba(196, 129, 255, 0.2);
 }
 
 .category-header {

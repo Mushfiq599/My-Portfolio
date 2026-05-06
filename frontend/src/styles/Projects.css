@@ -51,7 +51,7 @@
 
 .slider-card:hover,
 .project-slider.mouse-visible .slider-card {
-  transform: translateY(-6px);
+  transform: translateY(-6px) rotateX(2deg);
   box-shadow: 0 50px 120px rgba(196, 129, 255, 0.22);
   border-color: rgba(196, 129, 255, 0.45);
 }
@@ -86,7 +86,12 @@
 }
 
 .slider-card:hover .project-image img {
-  transform: scale(1.08);
+  transform: scale(1.08) rotateY(1deg);
+}
+
+.slider-card:hover .tech-tag {
+  transform: translateY(-2px) scale(1.05);
+  animation: bounce 0.6s ease;
 }
 
 .project-overlay {
@@ -225,6 +230,18 @@
   }
   50% {
     transform: translateY(-6px) scale(1.02);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
   }
 }
 
