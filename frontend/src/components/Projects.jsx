@@ -5,6 +5,14 @@ import { FaGithub, FaExternalLinkAlt, FaChevronLeft, FaChevronRight } from 'reac
 const GITHUB_USER = 'Mushfiq599';
 const GITHUB_URL = `https://github.com/${GITHUB_USER}`;
 
+const contributionLegend = [
+  { label: 'No activity', color: '#ebedf0' },
+  { label: 'Low', color: '#c6e48b' },
+  { label: 'Medium', color: '#7bc96f' },
+  { label: 'High', color: '#239a3b' },
+  { label: 'Very high', color: '#196127' },
+];
+
 const featuredProjects = [
   {
     title: 'Care.xyz',
@@ -55,6 +63,10 @@ export default function Projects() {
   const [activity, setActivity] = useState([]);
   const [loadingActivity, setLoadingActivity] = useState(true);
   const [error, setError] = useState(null);
+  const [contributionLoadError, setContributionLoadError] = useState(null);
+  const [contributionSummary, setContributionSummary] = useState(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState(null);
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev === 0 ? featuredProjects.length - 1 : prev - 1));
@@ -66,6 +78,8 @@ export default function Projects() {
 
   const currentProject = featuredProjects[currentIndex];
   const sliderRef = useRef(null);
+  const [contributionImageUrl, setContributionImageUrl] = useState(`https://ghchart.rshah.org/${GITHUB_USER}`);
+  const fallbackContributionImageUrl = `https://github-contributions.vercel.app/${GITHUB_USER}`;
 
   useEffect(() => {
     const slider = sliderRef.current;
@@ -107,7 +121,23 @@ export default function Projects() {
       }
     };
 
+    const fetchContributionSummary = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/github/contributions-summary/${GITHUB_USER}`);
+        if (!response.ok) {
+          throw new Error('Unable to load contribution summary');
+        }
+        const summary = await response.json();
+        setContributionSummary(summary);
+      } catch (err) {
+        setSummaryError(err.message);
+      } finally {
+        setSummaryLoading(false);
+      }
+    };
+
     fetchActivity();
+    fetchContributionSummary();
   }, []);
 
   return (
@@ -169,6 +199,65 @@ export default function Projects() {
               />
             ))}
           </div>
+        </div>
+
+        <div className="contributions-panel">
+          <div className="section-header contributions-header">
+            <h2>GitHub Contribution Grid</h2>
+            <p>Commit activity shown box by box, just like GitHub.</p>
+          </div>
+
+          <div className="legend-grid">
+            {contributionLegend.map((item) => (
+              <div key={item.label} className="legend-item">
+                <span className="legend-swatch" style={{ background: item.color }} />
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="contribution-graph">
+            <img
+              src={contributionImageUrl}
+              alt="GitHub contribution heatmap"
+              loading="lazy"
+              onError={() => {
+                if (contributionImageUrl === `https://ghchart.rshah.org/${GITHUB_USER}`) {
+                  setContributionImageUrl(fallbackContributionImageUrl);
+                } else {
+                  setContributionLoadError('Contribution graph could not load. Please refresh or check your network.');
+                }
+              }}
+            />
+          </div>
+
+          <div className="contribution-meta">
+            <div className="streak-summary">
+              <div className="metric-card">
+                <span className="metric-label">💪 Total Commits</span>
+                <strong>{summaryLoading ? '--' : contributionSummary?.totalCommits ?? '0'}</strong>
+              </div>
+              <div className="metric-card">
+                <span className="metric-label">🔥 Current Streak</span>
+                <strong>{summaryLoading ? '--' : contributionSummary?.currentStreak ?? '0'}<small> days</small></strong>
+              </div>
+              <div className="metric-card">
+                <span className="metric-label">⭐ Longest Streak</span>
+                <strong>{summaryLoading ? '--' : contributionSummary?.longestStreak ?? '0'}<small> days</small></strong>
+              </div>
+              <div className="metric-card">
+                <span className="metric-label">📊 Daily Average</span>
+                <strong>{summaryLoading ? '--' : contributionSummary?.averageDaily ?? '0'}<small> commits</small></strong>
+              </div>
+            </div>
+          </div>
+
+          {summaryLoading && (
+            <p className="projects-loading">Fetching your GitHub contribution data...</p>
+          )}
+          {summaryError && (
+            <p className="projects-error">{summaryError}</p>
+          )}
         </div>
 
         <div className="projects-footer">
