@@ -5,14 +5,6 @@ import { FaGithub, FaExternalLinkAlt, FaChevronLeft, FaChevronRight } from 'reac
 const GITHUB_USER = 'Mushfiq599';
 const GITHUB_URL = `https://github.com/${GITHUB_USER}`;
 
-const contributionLegend = [
-  { label: 'No activity', color: '#ebedf0' },
-  { label: 'Low', color: '#c6e48b' },
-  { label: 'Medium', color: '#7bc96f' },
-  { label: 'High', color: '#239a3b' },
-  { label: 'Very high', color: '#196127' },
-];
-
 const featuredProjects = [
   {
     title: 'Care.xyz',
@@ -63,10 +55,22 @@ export default function Projects() {
   const [activity, setActivity] = useState([]);
   const [loadingActivity, setLoadingActivity] = useState(true);
   const [error, setError] = useState(null);
-  const [contributionLoadError, setContributionLoadError] = useState(null);
   const [contributionSummary, setContributionSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState(null);
+  const [repos, setRepos] = useState([]);
+  const [loadingRepos, setLoadingRepos] = useState(true);
+  const [reposError, setReposError] = useState(null);
+  const [typedLines, setTypedLines] = useState([]);
+  const [activeTyping, setActiveTyping] = useState('');
+
+  const terminalLines = [
+    'Initializing developer systems...',
+    'Fetching GitHub activity...',
+    'Loading repository telemetry...',
+    'Synchronizing commits...',
+    'Rendering contribution galaxy...',
+  ];
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev === 0 ? featuredProjects.length - 1 : prev - 1));
@@ -80,6 +84,36 @@ export default function Projects() {
   const sliderRef = useRef(null);
   const [contributionImageUrl, setContributionImageUrl] = useState(`https://ghchart.rshah.org/${GITHUB_USER}`);
   const fallbackContributionImageUrl = `https://github-contributions.vercel.app/${GITHUB_USER}`;
+
+  const galaxyNodes = activity.slice(0, 14).map((event, index) => {
+    const repoName = event.repo?.name || 'unknown/repo';
+    const date = new Date(event.created_at).toLocaleDateString();
+    const commits = event.type === 'PushEvent' ? event.payload?.size || 1 : 1;
+    const message = event.payload?.commits?.[0]?.message || event.payload?.action || 'Updated activity';
+    const intensity = Math.min(4, commits);
+    const x = 10 + (index * 17) % 75;
+    const y = 12 + (index * 11) % 72;
+    const delay = index * 0.15;
+
+    return {
+      id: `${event.id || index}`,
+      repoName,
+      date,
+      commits,
+      message,
+      intensity,
+      x,
+      y,
+      delay,
+      eventType: event.type,
+    };
+  });
+
+  const repoCards = repos.slice(0, 4).map((repo, idx) => ({
+    ...repo,
+    x: 8 + idx * 22,
+    y: 10 + (idx % 2) * 28,
+  }));
 
   useEffect(() => {
     const slider = sliderRef.current;
@@ -106,9 +140,31 @@ export default function Projects() {
   }, []);
 
   useEffect(() => {
+    let timers = [];
+    let delay = 0;
+
+    terminalLines.forEach((line, index) => {
+      for (let i = 0; i <= line.length; i++) {
+        timers.push(setTimeout(() => {
+          setActiveTyping(line.slice(0, i));
+        }, delay + i * 40));
+      }
+
+      timers.push(setTimeout(() => {
+        setTypedLines((prev) => [...prev, line]);
+        setActiveTyping('');
+      }, delay + line.length * 40 + 450));
+
+      delay += line.length * 40 + 750;
+    });
+
+    return () => timers.forEach((timer) => clearTimeout(timer));
+  }, []);
+
+  useEffect(() => {
     const fetchActivity = async () => {
       try {
-        const response = await fetch(`https://api.github.com/users/${GITHUB_USER}/events/public?per_page=6`);
+        const response = await fetch(`https://api.github.com/users/${GITHUB_USER}/events/public?per_page=30`);
         if (!response.ok) {
           throw new Error('Unable to fetch GitHub activity');
         }
@@ -118,6 +174,21 @@ export default function Projects() {
         setError(err.message);
       } finally {
         setLoadingActivity(false);
+      }
+    };
+
+    const fetchRepos = async () => {
+      try {
+        const response = await fetch(`https://api.github.com/users/${GITHUB_USER}/repos?sort=pushed&per_page=8`);
+        if (!response.ok) {
+          throw new Error('Unable to fetch repositories');
+        }
+        const data = await response.json();
+        setRepos(data);
+      } catch (err) {
+        setReposError(err.message);
+      } finally {
+        setLoadingRepos(false);
       }
     };
 
@@ -137,6 +208,7 @@ export default function Projects() {
     };
 
     fetchActivity();
+    fetchRepos();
     fetchContributionSummary();
   }, []);
 
@@ -201,62 +273,116 @@ export default function Projects() {
           </div>
         </div>
 
-        <div className="contributions-panel">
-          <div className="section-header contributions-header">
-            <h2>GitHub Contribution Grid</h2>
-            <p>Commit activity shown box by box, just like GitHub.</p>
-          </div>
-
-          <div className="legend-grid">
-            {contributionLegend.map((item) => (
-              <div key={item.label} className="legend-item">
-                <span className="legend-swatch" style={{ background: item.color }} />
-                <span>{item.label}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="contribution-graph">
-            <img
-              src={contributionImageUrl}
-              alt="GitHub contribution heatmap"
-              loading="lazy"
-              onError={() => {
-                if (contributionImageUrl === `https://ghchart.rshah.org/${GITHUB_USER}`) {
-                  setContributionImageUrl(fallbackContributionImageUrl);
-                } else {
-                  setContributionLoadError('Contribution graph could not load. Please refresh or check your network.');
-                }
-              }}
-            />
-          </div>
-
-          <div className="contribution-meta">
-            <div className="streak-summary">
-              <div className="metric-card">
-                <span className="metric-label">💪 Total Commits</span>
+        <div className="github-galaxy-section">
+          <div className="github-galaxy-top">
+            <div>
+              <span className="galaxy-chip">DEVELOPER ACTIVITY UNIVERSE</span>
+              <h2>GitHub Galaxy</h2>
+              <p>Experience your GitHub contributions as a cinematic cyberpunk universe of glowing activity nodes, floating repos, and AI system logs.</p>
+            </div>
+            <div className="galaxy-stats">
+              <div className="metric-card galaxy-metric">
+                <span className="metric-label">Total contributions</span>
                 <strong>{summaryLoading ? '--' : contributionSummary?.totalCommits ?? '0'}</strong>
               </div>
-              <div className="metric-card">
-                <span className="metric-label">🔥 Current Streak</span>
+              <div className="metric-card galaxy-metric">
+                <span className="metric-label">Current streak</span>
                 <strong>{summaryLoading ? '--' : contributionSummary?.currentStreak ?? '0'}<small> days</small></strong>
               </div>
-              <div className="metric-card">
-                <span className="metric-label">⭐ Longest Streak</span>
+              <div className="metric-card galaxy-metric">
+                <span className="metric-label">Longest streak</span>
                 <strong>{summaryLoading ? '--' : contributionSummary?.longestStreak ?? '0'}<small> days</small></strong>
               </div>
-              <div className="metric-card">
-                <span className="metric-label">📊 Daily Average</span>
-                <strong>{summaryLoading ? '--' : contributionSummary?.averageDaily ?? '0'}<small> commits</small></strong>
+              <div className="metric-card galaxy-metric">
+                <span className="metric-label">Avg daily commits</span>
+                <strong>{summaryLoading ? '--' : contributionSummary?.averageDaily ?? '0'}<small> / day</small></strong>
               </div>
             </div>
           </div>
 
-          {summaryLoading && (
-            <p className="projects-loading">Fetching your GitHub contribution data...</p>
+          <div className="galaxy-content-grid">
+            <div className="galaxy-canvas">
+              <div className="galaxy-background" />
+              <div className="galaxy-particles">
+                {Array.from({ length: 14 }).map((_, index) => (
+                  <span key={index} className="particle-dot" style={{ animationDelay: `${index * 0.2}s`, top: `${Math.random() * 92}%`, left: `${Math.random() * 92}%` }} />
+                ))}
+              </div>
+              <div className="galaxy-lines">
+                <span className="connection-line connection-a" />
+                <span className="connection-line connection-b" />
+                <span className="connection-line connection-c" />
+              </div>
+              {galaxyNodes.map((node, index) => (
+                <div
+                  key={node.id}
+                  className={`galaxy-node level-${node.intensity}`}
+                  style={{ top: `${node.y}%`, left: `${node.x}%`, animationDelay: `${node.delay}s` }}
+                >
+                  <div className="node-core" />
+                  <div className="node-halo" />
+                  <div className="node-info">
+                    <span>{node.repoName}</span>
+                    <strong>{node.commits} commit{node.commits > 1 ? 's' : ''}</strong>
+                  </div>
+                </div>
+              ))}
+
+              {repoCards.map((repo, index) => (
+                <a
+                  key={repo.id}
+                  href={repo.html_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="repo-card"
+                  style={{ top: `${repo.y}%`, left: `${repo.x}%`, animationDelay: `${index * 0.15}s` }}
+                >
+                  <div className="repo-header">
+                    <span>{repo.name}</span>
+                    <span className="repo-stars">★ {repo.stargazers_count}</span>
+                  </div>
+                  <div className="repo-body">
+                    <span className="repo-language">{repo.language || 'Unknown'}</span>
+                    <p>{repo.description || 'Holographic project node in the galaxy.'}</p>
+                  </div>
+                  <div className="repo-footer">
+                    <span>{repo.homepage ? 'Live' : 'GitHub'}</span>
+                    <span>{repo.pushed_at ? new Date(repo.pushed_at).toLocaleDateString() : '—'}</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+
+            <div className="galaxy-terminal-panel">
+              <div className="terminal-shell">
+                <div className="terminal-header">
+                  <span className="terminal-dot red" />
+                  <span className="terminal-dot yellow" />
+                  <span className="terminal-dot green" />
+                  <span className="terminal-title">DEV-AI CONSOLE</span>
+                </div>
+                <div className="terminal-body">
+                  {typedLines.map((line, index) => (
+                    <div key={index} className="terminal-line">{line}</div>
+                  ))}
+                  <div className="terminal-line terminal-typing">
+                    {activeTyping}
+                    <span className="terminal-cursor">█</span>
+                  </div>
+                </div>
+                <div className="terminal-status">
+                  <span>STATUS:</span>
+                  <strong>{summaryLoading || loadingRepos ? 'SYNCING...' : 'ONLINE'}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {(summaryLoading || loadingRepos) && (
+            <p className="projects-loading">Initializing the GitHub galaxy. Stand by...</p>
           )}
-          {summaryError && (
-            <p className="projects-error">{summaryError}</p>
+          {(summaryError || reposError) && (
+            <p className="projects-error">{summaryError || reposError}</p>
           )}
         </div>
 
