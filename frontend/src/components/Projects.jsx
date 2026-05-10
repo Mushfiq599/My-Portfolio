@@ -4,6 +4,7 @@ import { FaGithub, FaExternalLinkAlt, FaChevronLeft, FaChevronRight } from 'reac
 
 const GITHUB_USER = 'Mushfiq599';
 const GITHUB_URL = `https://github.com/${GITHUB_USER}`;
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const featuredProjects = [
   {
@@ -55,6 +56,9 @@ export default function Projects() {
   const [activity, setActivity] = useState([]);
   const [loadingActivity, setLoadingActivity] = useState(true);
   const [error, setError] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [profileError, setProfileError] = useState(null);
   const [contributionSummary, setContributionSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState(null);
@@ -82,7 +86,7 @@ export default function Projects() {
 
   const currentProject = featuredProjects[currentIndex];
   const sliderRef = useRef(null);
-  const [contributionImageUrl, setContributionImageUrl] = useState(`https://ghchart.rshah.org/${GITHUB_USER}`);
+  const contributionGraphUrl = `${API_BASE_URL}/github/contributions/${GITHUB_USER}`;
   const fallbackContributionImageUrl = `https://github-contributions.vercel.app/${GITHUB_USER}`;
 
   const galaxyNodes = activity.slice(0, 14).map((event, index) => {
@@ -194,7 +198,7 @@ export default function Projects() {
 
     const fetchContributionSummary = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/github/contributions-summary/${GITHUB_USER}`);
+        const response = await fetch(`${API_BASE_URL}/github/contributions-summary/${GITHUB_USER}`);
         if (!response.ok) {
           throw new Error('Unable to load contribution summary');
         }
@@ -207,9 +211,25 @@ export default function Projects() {
       }
     };
 
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`https://api.github.com/users/${GITHUB_USER}`);
+        if (!response.ok) {
+          throw new Error('Unable to fetch GitHub profile');
+        }
+        const profileData = await response.json();
+        setProfile(profileData);
+      } catch (err) {
+        setProfileError(err.message);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
     fetchActivity();
     fetchRepos();
     fetchContributionSummary();
+    fetchProfile();
   }, []);
 
   return (
@@ -386,12 +406,104 @@ export default function Projects() {
           )}
         </div>
 
-        <div className="projects-footer">
-          <h3>Want to see more?</h3>
-          <p>Explore my GitHub profile to view all projects and contributions.</p>
-          <button className="btn-secondary" onClick={() => window.open(GITHUB_URL, '_blank')}>
-            View GitHub Profile
-          </button>
+        <div className="github-profile-section">
+          <div className="section-header activity-header">
+            <h2>GitHub Profile</h2>
+            <p>Live profile details and the latest contribution heatmap from my GitHub account.</p>
+          </div>
+
+          <div className="profile-grid">
+            <div className="profile-card">
+              {loadingProfile ? (
+                <div className="profile-loading">Loading GitHub profile…</div>
+              ) : profileError ? (
+                <p className="projects-error">{profileError}</p>
+              ) : (
+                <>
+                  <div className="profile-avatar-wrap">
+                    <img src={profile?.avatar_url} alt={`${profile?.login} avatar`} className="profile-avatar" />
+                  </div>
+                  <div className="profile-details">
+                    <div className="profile-main">
+                      <h3>{profile?.name || profile?.login}</h3>
+                      <p className="profile-login">@{profile?.login}</p>
+                      <p className="profile-bio">{profile?.bio || 'Open source enthusiast, building tools and interfaces that scale.'}</p>
+                    </div>
+
+                    <div className="profile-meta">
+                      <span>{profile?.location || 'Remote'}</span>
+                      <span>{profile?.blog ? <a href={profile.blog.startsWith('http') ? profile.blog : `https://${profile.blog}`} target="_blank" rel="noreferrer">Website</a> : 'Website unavailable'}</span>
+                    </div>
+
+                    <div className="profile-stats-grid">
+                      <div>
+                        <strong>{profile?.public_repos ?? '--'}</strong>
+                        <span>Repos</span>
+                      </div>
+                      <div>
+                        <strong>{profile?.followers ?? '--'}</strong>
+                        <span>Followers</span>
+                      </div>
+                      <div>
+                        <strong>{profile?.following ?? '--'}</strong>
+                        <span>Following</span>
+                      </div>
+                      <div>
+                        <strong>{contributionSummary?.totalCommits ?? '--'}</strong>
+                        <span>Year contributions</span>
+                      </div>
+                    </div>
+
+                    <button className="btn-secondary" onClick={() => window.open(GITHUB_URL, '_blank')}>
+                      Open GitHub Profile
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="contribution-card">
+              <div className="contribution-card-header">
+                <h3>Contribution Heatmap</h3>
+                <p>Actual yearly contribution activity rendered from GitHub.</p>
+              </div>
+
+              <div className="contribution-summary-grid">
+                <div>
+                  <strong>{summaryLoading ? '--' : contributionSummary?.totalCommits ?? '--'}</strong>
+                  <span>Total contributions</span>
+                </div>
+                <div>
+                  <strong>{summaryLoading ? '--' : contributionSummary?.currentStreak ?? '--'}</strong>
+                  <span>Current streak</span>
+                </div>
+                <div>
+                  <strong>{summaryLoading ? '--' : contributionSummary?.longestStreak ?? '--'}</strong>
+                  <span>Longest streak</span>
+                </div>
+                <div>
+                  <strong>{summaryLoading ? '--' : contributionSummary?.averageDaily ?? '--'}</strong>
+                  <span>Daily average</span>
+                </div>
+              </div>
+
+              <div className="contribution-graph">
+                <img
+                  src={contributionGraphUrl}
+                  alt="GitHub contribution heatmap"
+                  onError={(e) => {
+                    if (e.target.src !== fallbackContributionImageUrl) {
+                      e.target.src = fallbackContributionImageUrl;
+                    }
+                  }}
+                />
+              </div>
+
+              <p className="contribution-note">
+                This section shows real GitHub contributions fetched live in a heatmap style, plus yearly commit statistics.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="activity-panel">
