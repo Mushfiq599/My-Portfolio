@@ -5,6 +5,11 @@ import { FaGithub, FaExternalLinkAlt, FaChevronLeft, FaChevronRight } from 'reac
 const GITHUB_USER = 'Mushfiq599';
 const GITHUB_URL = `https://github.com/${GITHUB_USER}`;
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const contributionGraphSources = [
+  `https://github.com/users/${GITHUB_USER}/contributions`,
+  `https://github-contributions.vercel.app/${GITHUB_USER}`,
+  `https://ghchart.rshah.org/${GITHUB_USER}`,
+];
 
 const featuredProjects = [
   {
@@ -60,6 +65,7 @@ export default function Projects() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [profileError, setProfileError] = useState(null);
   const [contributionSummary, setContributionSummary] = useState(null);
+  const [contributionGraphIndex, setContributionGraphIndex] = useState(0);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState(null);
   const [repos, setRepos] = useState([]);
@@ -86,8 +92,14 @@ export default function Projects() {
 
   const currentProject = featuredProjects[currentIndex];
   const sliderRef = useRef(null);
-  const contributionGraphUrl = `${API_BASE_URL}/github/contributions/${GITHUB_USER}`;
-  const fallbackContributionImageUrl = `https://github-contributions.vercel.app/${GITHUB_USER}`;
+  const contributionGraphUrl = contributionGraphSources[contributionGraphIndex];
+
+  const summaryValues = {
+    totalCommits: contributionSummary?.totalCommits,
+    currentStreak: contributionSummary?.currentStreak,
+    longestStreak: contributionSummary?.longestStreak,
+    averageDaily: contributionSummary?.averageDaily,
+  };
 
   const galaxyNodes = activity.slice(0, 14).map((event, index) => {
     const repoName = event.repo?.name || 'unknown/repo';
@@ -449,7 +461,7 @@ export default function Projects() {
                         <span>Following</span>
                       </div>
                       <div>
-                        <strong>{contributionSummary?.totalCommits ?? '--'}</strong>
+                        <strong>{summaryValues.totalCommits ?? '--'}</strong>
                         <span>Year contributions</span>
                       </div>
                     </div>
@@ -465,24 +477,24 @@ export default function Projects() {
             <div className="contribution-card">
               <div className="contribution-card-header">
                 <h3>Contribution Heatmap</h3>
-                <p>Actual yearly contribution activity rendered from GitHub.</p>
+                <p>Actual yearly contribution activity rendered directly from GitHub with fallback public heatmaps.</p>
               </div>
 
               <div className="contribution-summary-grid">
                 <div>
-                  <strong>{summaryLoading ? '--' : contributionSummary?.totalCommits ?? '--'}</strong>
+                  <strong>{summaryLoading ? '--' : summaryValues.totalCommits ?? '--'}</strong>
                   <span>Total contributions</span>
                 </div>
                 <div>
-                  <strong>{summaryLoading ? '--' : contributionSummary?.currentStreak ?? '--'}</strong>
+                  <strong>{summaryLoading ? '--' : summaryValues.currentStreak ?? '--'}</strong>
                   <span>Current streak</span>
                 </div>
                 <div>
-                  <strong>{summaryLoading ? '--' : contributionSummary?.longestStreak ?? '--'}</strong>
+                  <strong>{summaryLoading ? '--' : summaryValues.longestStreak ?? '--'}</strong>
                   <span>Longest streak</span>
                 </div>
                 <div>
-                  <strong>{summaryLoading ? '--' : contributionSummary?.averageDaily ?? '--'}</strong>
+                  <strong>{summaryLoading ? '--' : summaryValues.averageDaily ?? '--'}</strong>
                   <span>Daily average</span>
                 </div>
               </div>
@@ -491,10 +503,13 @@ export default function Projects() {
                 <img
                   src={contributionGraphUrl}
                   alt="GitHub contribution heatmap"
-                  onError={(e) => {
-                    if (e.target.src !== fallbackContributionImageUrl) {
-                      e.target.src = fallbackContributionImageUrl;
-                    }
+                  onError={() => {
+                    setContributionGraphIndex((currentIndex) => {
+                      if (currentIndex < contributionGraphSources.length - 1) {
+                        return currentIndex + 1;
+                      }
+                      return currentIndex;
+                    });
                   }}
                 />
               </div>
