@@ -897,6 +897,10 @@
     gap: 1rem;
   }
 
+  .contribution-summary-grid.loading {
+    opacity: 0.6;
+  }
+
   .profile-stats-grid div,
   .contribution-summary-grid div {
     padding: 1rem;

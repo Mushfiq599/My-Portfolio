@@ -6,9 +6,8 @@ const GITHUB_USER = 'Mushfiq599';
 const GITHUB_URL = `https://github.com/${GITHUB_USER}`;
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 const contributionGraphSources = [
-  `https://github.com/users/${GITHUB_USER}/contributions`,
-  `https://github-contributions.vercel.app/${GITHUB_USER}`,
   `https://ghchart.rshah.org/${GITHUB_USER}`,
+  `https://github.com/users/${GITHUB_USER}/contributions`,
 ];
 
 const featuredProjects = [
@@ -480,24 +479,33 @@ export default function Projects() {
                 <p>Actual yearly contribution activity rendered directly from GitHub with fallback public heatmaps.</p>
               </div>
 
-              <div className="contribution-summary-grid">
-                <div>
-                  <strong>{summaryLoading ? '--' : summaryValues.totalCommits ?? '--'}</strong>
-                  <span>Total contributions</span>
+              {!summaryLoading && (contributionSummary || summaryError) ? (
+                <div className="contribution-summary-grid">
+                  <div>
+                    <strong>{contributionSummary?.totalCommits ?? '--'}</strong>
+                    <span>Total contributions</span>
+                  </div>
+                  <div>
+                    <strong>{contributionSummary?.currentStreak ?? '--'}</strong>
+                    <span>Current streak</span>
+                  </div>
+                  <div>
+                    <strong>{contributionSummary?.longestStreak ?? '--'}</strong>
+                    <span>Longest streak</span>
+                  </div>
+                  <div>
+                    <strong>{contributionSummary?.averageDaily ?? '--'}</strong>
+                    <span>Daily average</span>
+                  </div>
                 </div>
-                <div>
-                  <strong>{summaryLoading ? '--' : summaryValues.currentStreak ?? '--'}</strong>
-                  <span>Current streak</span>
+              ) : (
+                <div className="contribution-summary-grid loading">
+                  <div><strong>--</strong><span>Contributions</span></div>
+                  <div><strong>--</strong><span>Streak</span></div>
+                  <div><strong>--</strong><span>Longest</span></div>
+                  <div><strong>--</strong><span>Daily avg</span></div>
                 </div>
-                <div>
-                  <strong>{summaryLoading ? '--' : summaryValues.longestStreak ?? '--'}</strong>
-                  <span>Longest streak</span>
-                </div>
-                <div>
-                  <strong>{summaryLoading ? '--' : summaryValues.averageDaily ?? '--'}</strong>
-                  <span>Daily average</span>
-                </div>
-              </div>
+              )}
 
               <div className="contribution-graph">
                 <img
@@ -515,7 +523,7 @@ export default function Projects() {
               </div>
 
               <p className="contribution-note">
-                This section shows real GitHub contributions fetched live in a heatmap style, plus yearly commit statistics.
+                {summaryError ? '⚠️ Contribution stats unavailable, but your actual heatmap is displayed above.' : 'This shows your actual GitHub contribution heatmap. Yearly stats are fetched from your GitHub account.'}
               </p>
             </div>
           </div>
