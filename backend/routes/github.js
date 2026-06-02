@@ -13,8 +13,8 @@ router.get('/contributions-summary/:username', async (req, res) => {
     const userData = userResponse.data;
 
     // Fetch contribution page to extract actual count
-    // This gives us the real 365-day contribution count
-    const pageResponse = await axios.get(`https://github.com/${username}`, {
+    // Use the contributions page which contains the yearly summary
+    const pageResponse = await axios.get(`https://github.com/users/${username}/contributions`, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       },
@@ -110,9 +110,17 @@ router.get('/contributions/:username', async (req, res) => {
         Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       },
     });
-
-    res.set('Content-Type', 'image/svg+xml');
-    res.send(response.data);
+    // Extract the <svg> element from the returned HTML so we serve a valid SVG image
+    const html = response.data || '';
+    const svgMatch = html.match(/<svg[\s\S]*?<\/svg>/i);
+    if (svgMatch) {
+      res.set('Content-Type', 'image/svg+xml');
+      res.send(svgMatch[0]);
+    } else {
+      // Fallback: return the raw response (may include surrounding HTML)
+      res.set('Content-Type', 'image/svg+xml');
+      res.send(html);
+    }
   } catch (error) {
     console.error('GitHub contributions proxy error:', error.message);
     res.status(500).json({ message: 'Unable to load GitHub contributions', error: error.message });
