@@ -65,6 +65,7 @@ export default function Projects() {
   const [profileError, setProfileError] = useState(null);
   const [contributionSummary, setContributionSummary] = useState(null);
   const [contributionGraphIndex, setContributionGraphIndex] = useState(0);
+  const [contributionSvg, setContributionSvg] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState(null);
   const [repos, setRepos] = useState([]);
@@ -241,7 +242,55 @@ export default function Projects() {
     fetchRepos();
     fetchContributionSummary();
     fetchProfile();
+    fetchContributionSvg();
   }, []);
+
+  // Fetch SVG (proxy first, then public sources) and recolor to match theme
+  const fetchContributionSvg = async () => {
+    const sources = [
+      `${API_BASE_URL}/github/contributions/${GITHUB_USER}`,
+      `https://ghchart.rshah.org/${GITHUB_USER}`,
+      `https://github.com/users/${GITHUB_USER}/contributions`,
+    ];
+
+    for (const src of sources) {
+      try {
+        const res = await fetch(src, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        if (!res.ok) throw new Error('no-svg');
+        const text = await res.text();
+
+        // If string contains an <svg> element, extract it; otherwise use whole text
+        const svgMatch = text.match(/<svg[\s\S]*?<\/svg>/i);
+        let svg = svgMatch ? svgMatch[0] : text;
+
+        // Recolor common GitHub contribution colors to portfolio purple palette
+        const colorMap = {
+          '#ebedf0': '#0b0a0f', // empty -> dark
+          '#c6e48b': '#3a1f45', // level1 -> dark purple
+          '#7bc96f': '#6b3fb0', // level2 -> medium purple
+          '#239a3b': '#b07bff', // level3 -> bright purple
+          '#196127': '#d7b8ff', // level4 -> light highlight
+        };
+
+        Object.keys(colorMap).forEach((k) => {
+          const v = colorMap[k];
+          const re = new RegExp(k, 'gi');
+          svg = svg.replace(re, v);
+        });
+
+        // Ensure SVG scales to container
+        if (!/width=/.test(svg)) svg = svg.replace('<svg', '<svg width="100%"');
+
+        setContributionSvg(svg);
+        return;
+      } catch (e) {
+        // try next source
+        continue;
+      }
+    }
+
+    setContributionSvg(null);
+  };
 
   return (
     <section id="work" className="projects">
@@ -508,18 +557,22 @@ export default function Projects() {
               )}
 
               <div className="contribution-graph">
-                <img
-                  src={contributionGraphUrl}
-                  alt="GitHub contribution heatmap"
-                  onError={() => {
-                    setContributionGraphIndex((currentIndex) => {
-                      if (currentIndex < contributionGraphSources.length - 1) {
-                        return currentIndex + 1;
-                      }
-                      return currentIndex;
-                    });
-                  }}
-                />
+                {contributionSvg ? (
+                  <div className="contribution-svg" dangerouslySetInnerHTML={{ __html: contributionSvg }} />
+                ) : (
+                  <img
+                    src={contributionGraphUrl}
+                    alt="GitHub contribution heatmap"
+                    onError={() => {
+                      setContributionGraphIndex((currentIndex) => {
+                        if (currentIndex < contributionGraphSources.length - 1) {
+                          return currentIndex + 1;
+                        }
+                        return currentIndex;
+                      });
+                    }}
+                  />
+                )}
               </div>
 
               <p className="contribution-note">

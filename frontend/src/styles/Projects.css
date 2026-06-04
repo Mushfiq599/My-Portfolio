@@ -957,6 +957,32 @@
     background: #09070f;
   }
 
+  .contribution-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .contribution-svg svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Round contribution squares and add subtle glow */
+  .contribution-svg svg rect,
+  .contribution-svg svg g rect {
+    rx: 4;
+    ry: 4;
+    transition: transform 0.15s ease, filter 0.15s ease;
+  }
+
+  .contribution-svg svg rect:hover,
+  .contribution-svg svg g rect:hover {
+    transform: scale(1.08);
+    filter: drop-shadow(0 6px 12px rgba(180,120,255,0.18));
+  }
+
   .contribution-note {
     color: var(--text-secondary);
     font-size: 0.95rem;
