@@ -247,6 +247,7 @@ export default function Projects() {
 
   // Fetch SVG (proxy first, then public sources) and recolor to match theme
   const fetchContributionSvg = async () => {
+    // Prefer backend proxy (real GitHub contributions SVG) first, then ghchart
     const sources = [
       `${API_BASE_URL}/github/contributions/${GITHUB_USER}`,
       `https://ghchart.rshah.org/${GITHUB_USER}`,
@@ -259,9 +260,14 @@ export default function Projects() {
         if (!res.ok) throw new Error('no-svg');
         const text = await res.text();
 
-        // If string contains an <svg> element, extract it; otherwise use whole text
+        // Only accept a true <svg> fragment to avoid inlining full HTML
         const svgMatch = text.match(/<svg[\s\S]*?<\/svg>/i);
-        let svg = svgMatch ? svgMatch[0] : text;
+        if (!svgMatch) {
+          // not an SVG response, try next source
+          continue;
+        }
+
+        let svg = svgMatch[0];
 
         // Recolor common GitHub contribution colors to portfolio purple palette
         const colorMap = {
@@ -278,8 +284,21 @@ export default function Projects() {
           svg = svg.replace(re, v);
         });
 
-        // Ensure SVG scales to container
-        if (!/width=/.test(svg)) svg = svg.replace('<svg', '<svg width="100%"');
+        // Ensure SVG scales to container and preserves aspect ratio
+        if (!/width=/.test(svg)) svg = svg.replace('<svg', '<svg width="100%" preserveAspectRatio="xMinYMin meet"');
+
+        // Inject rounding for <rect> elements that lack rx/ry
+        svg = svg.replace(/<rect(?![^>]*\brx=)/gi, '<rect rx="4" ry="4"');
+
+        // Inject inline SVG style to mark committed days and add hover/glow
+        const styleBlock = `<style>
+          rect { transition: transform 0.12s ease, filter 0.12s ease; }
+          rect[fill="#0b0a0f"] { opacity: 0.45; }
+          rect:not([fill="#0b0a0f"]) { stroke: #d7b8ff; stroke-width: 1; filter: drop-shadow(0 6px 14px rgba(176,120,255,0.12)); }
+          rect:hover { transform: scale(1.12); filter: drop-shadow(0 10px 30px rgba(176,120,255,0.22)); }
+        </style>`;
+
+        svg = svg.replace(/<svg[^>]*>/i, (m) => m + styleBlock);
 
         setContributionSvg(svg);
         return;

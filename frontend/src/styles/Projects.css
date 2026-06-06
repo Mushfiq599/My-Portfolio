@@ -943,10 +943,10 @@
   .contribution-graph {
     margin-top: 1rem;
     border-radius: 24px;
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid rgba(196, 129, 255, 0.2);
     background: #09070f;
-    min-height: 260px;
+    min-height: 320px;
   }
 
   .contribution-graph img {
