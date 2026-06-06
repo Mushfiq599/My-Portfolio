@@ -2,6 +2,13 @@ const express = require('express');
 const axios = require('axios');
 
 const router = express.Router();
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const defaultHeaders = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+};
+if (GITHUB_TOKEN) {
+  defaultHeaders.Authorization = `Bearer ${GITHUB_TOKEN}`;
+}
 
 // Fetch contribution stats from GitHub public API and contribution data
 router.get('/contributions-summary/:username', async (req, res) => {
@@ -9,14 +16,17 @@ router.get('/contributions-summary/:username', async (req, res) => {
 
   try {
     // Fetch user public profile data
-    const userResponse = await axios.get(`https://api.github.com/users/${username}`);
+    const userResponse = await axios.get(`https://api.github.com/users/${username}`, {
+      headers: defaultHeaders,
+    });
     const userData = userResponse.data;
 
     // Fetch contribution page to extract actual count
     // Use the contributions page which contains the yearly summary
     const pageResponse = await axios.get(`https://github.com/users/${username}/contributions`, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        ...defaultHeaders,
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       },
     });
     
@@ -25,12 +35,20 @@ router.get('/contributions-summary/:username', async (req, res) => {
     const totalCommits = contributionMatch ? parseInt(contributionMatch[1]) : 0;
 
     // Fetch public events to calculate streaks
-    const eventsResponse = await axios.get(`https://api.github.com/users/${username}/events/public?per_page=500`);
-    const events = eventsResponse.data;
+    let events = [];
+    try {
+      const eventsResponse = await axios.get(`https://api.github.com/users/${username}/events/public?per_page=500`, {
+        headers: defaultHeaders,
+      });
+      events = eventsResponse.data;
+    } catch (eventsError) {
+      console.warn('GitHub events fetch warning:', eventsError.response?.status || eventsError.message);
+      // Continue without events if GitHub API events are rate limited or blocked
+      events = [];
+    }
 
     // Calculate streak statistics from events
     const contributionMap = {};
-    const today = new Date();
 
     events.forEach((event) => {
       const date = new Date(event.created_at).toISOString().split('T')[0];
@@ -86,10 +104,13 @@ router.get('/contributions-summary/:username', async (req, res) => {
       averageDaily,
     });
   } catch (error) {
-    console.error('GitHub contribution summary error:', error.message);
+    console.error('GitHub contribution summary error:', error.response?.status || error.message);
+    const message = error.response?.status === 403
+      ? 'GitHub rate limit or permission blocked the request. Set GITHUB_TOKEN in backend environment or try again later.'
+      : 'Unable to load GitHub contribution summary';
     res.status(500).json({ 
-      message: 'Unable to load GitHub contribution summary', 
-      error: error.message,
+      message,
+      error: error.response?.data?.message || error.message,
       totalCommits: 0,
       currentStreak: 0,
       longestStreak: 0,
@@ -106,7 +127,7 @@ router.get('/contributions/:username', async (req, res) => {
   try {
     const response = await axios.get(`https://github.com/users/${username}/contributions`, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        ...defaultHeaders,
         Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       },
     });
@@ -124,6 +145,45 @@ router.get('/contributions/:username', async (req, res) => {
   } catch (error) {
     console.error('GitHub contributions proxy error:', error.message);
     res.status(500).json({ message: 'Unable to load GitHub contributions', error: error.message });
+  }
+});
+
+router.get('/user/:username', async (req, res) => {
+  const { username } = req.params;
+  try {
+    const response = await axios.get(`https://api.github.com/users/${username}`, {
+      headers: defaultHeaders,
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('GitHub user proxy error:', error.response?.status || error.message);
+    res.status(error.response?.status || 500).json({ message: 'Unable to load GitHub user profile', error: error.response?.data?.message || error.message });
+  }
+});
+
+router.get('/repos/:username', async (req, res) => {
+  const { username } = req.params;
+  try {
+    const response = await axios.get(`https://api.github.com/users/${username}/repos?sort=pushed&per_page=8`, {
+      headers: defaultHeaders,
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('GitHub repos proxy error:', error.response?.status || error.message);
+    res.status(error.response?.status || 500).json({ message: 'Unable to load GitHub repositories', error: error.response?.data?.message || error.message });
+  }
+});
+
+router.get('/events/:username', async (req, res) => {
+  const { username } = req.params;
+  try {
+    const response = await axios.get(`https://api.github.com/users/${username}/events/public?per_page=30`, {
+      headers: defaultHeaders,
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('GitHub events proxy error:', error.response?.status || error.message);
+    res.status(error.response?.status || 500).json({ message: 'Unable to load GitHub activity events', error: error.response?.data?.message || error.message });
   }
 });
 
