@@ -66,6 +66,10 @@ export default function Projects() {
   const [contributionSummary, setContributionSummary] = useState(null);
   const [contributionGraphIndex, setContributionGraphIndex] = useState(0);
   const [contributionSvg, setContributionSvg] = useState(null);
+  const [tooltipText, setTooltipText] = useState('');
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [tooltipCoords, setTooltipCoords] = useState({ x: 0, y: 0 });
+  const activityHeatmapRef = useRef(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState(null);
   const [repos, setRepos] = useState([]);
@@ -180,7 +184,7 @@ export default function Projects() {
   useEffect(() => {
     const fetchActivity = async () => {
       try {
-        const response = await fetch(`https://api.github.com/users/${GITHUB_USER}/events/public?per_page=30`);
+        const response = await fetch(`${API_BASE_URL}/github/events/${GITHUB_USER}`);
         if (!response.ok) {
           throw new Error('Unable to fetch GitHub activity');
         }
@@ -195,7 +199,7 @@ export default function Projects() {
 
     const fetchRepos = async () => {
       try {
-        const response = await fetch(`https://api.github.com/users/${GITHUB_USER}/repos?sort=pushed&per_page=8`);
+        const response = await fetch(`${API_BASE_URL}/github/repos/${GITHUB_USER}`);
         if (!response.ok) {
           throw new Error('Unable to fetch repositories');
         }
@@ -225,7 +229,7 @@ export default function Projects() {
 
     const fetchProfile = async () => {
       try {
-        const response = await fetch(`https://api.github.com/users/${GITHUB_USER}`);
+        const response = await fetch(`${API_BASE_URL}/github/user/${GITHUB_USER}`);
         if (!response.ok) {
           throw new Error('Unable to fetch GitHub profile');
         }
@@ -285,11 +289,34 @@ export default function Projects() {
         });
 
         // Ensure SVG scales to container and preserves aspect ratio
-        if (!/width=/.test(svg)) svg = svg.replace('<svg', '<svg width="100%" preserveAspectRatio="xMinYMin meet"');
+        // If SVG has width/height attributes, convert them into a viewBox for responsive scaling
+        const svgTagMatch = svg.match(/<svg[^>]*>/i);
+        if (svgTagMatch) {
+          const svgTag = svgTagMatch[0];
+          const wMatch = svgTag.match(/width=["']?(\d+)(?:px)?["']?/i);
+          const hMatch = svgTag.match(/height=["']?(\d+)(?:px)?["']?/i);
+          if (wMatch && hMatch) {
+            const w = parseInt(wMatch[1], 10);
+            const h = parseInt(hMatch[1], 10);
+            const newTag = svgTag
+              .replace(/\swidth=["']?\d+(?:px)?["']?/i, '')
+              .replace(/\sheight=["']?\d+(?:px)?["']?/i, '')
+              .replace(/<svg/i, `<svg width="100%" preserveAspectRatio="xMinYMin meet" viewBox="0 0 ${w} ${h}"`);
+            svg = svg.replace(svgTag, newTag);
+          } else if (!/width=/.test(svgTag)) {
+            svg = svg.replace('<svg', '<svg width="100%" preserveAspectRatio="xMinYMin meet"');
+          } else {
+            // ensure at least width is responsive
+            svg = svg.replace(/width=["']?\d+(?:px)?["']?/i, 'width="100%"');
+          }
+        }
 
         // Inject rounding for <rect> elements that lack rx/ry
         svg = svg.replace(/<rect(?![^>]*\brx=)/gi, '<rect rx="4" ry="4"');
 
+        // Reduce square size slightly so full 12 months fit, then inject inline SVG style to mark committed days and add hover/glow
+        svg = svg.replace(/width=\"10\"/g, 'width="8"').replace(/height=\"10\"/g, 'height="8"');
+        
         // Inject inline SVG style to mark committed days and add hover/glow
         const styleBlock = `<style>
           rect { transition: transform 0.12s ease, filter 0.12s ease; }
@@ -310,6 +337,49 @@ export default function Projects() {
 
     setContributionSvg(null);
   };
+
+  useEffect(() => {
+    const container = activityHeatmapRef.current;
+    if (!container) return;
+    const svgRoot = container.querySelector('svg');
+    if (!svgRoot) return;
+
+    const rects = Array.from(svgRoot.querySelectorAll('rect'));
+    const handleMouseEnter = (event) => {
+      const rect = event.currentTarget;
+      const date = rect.getAttribute('data-date') || rect.dataset.date || 'Unknown date';
+      const count = rect.getAttribute('data-count') || rect.dataset.count || rect.getAttribute('data-level') || '0';
+      setTooltipText(`${date} — ${count} contribution${count === '1' ? '' : 's'}`);
+      setTooltipVisible(true);
+    };
+
+    const handleMouseMove = (event) => {
+      const bounds = container.getBoundingClientRect();
+      setTooltipCoords({
+        x: event.clientX - bounds.left + 12,
+        y: event.clientY - bounds.top + 12,
+      });
+    };
+
+    const handleMouseLeave = () => {
+      setTooltipVisible(false);
+    };
+
+    rects.forEach((rect) => {
+      rect.addEventListener('mouseenter', handleMouseEnter);
+      rect.addEventListener('mousemove', handleMouseMove);
+      rect.addEventListener('mouseleave', handleMouseLeave);
+      rect.style.cursor = 'pointer';
+    });
+
+    return () => {
+      rects.forEach((rect) => {
+        rect.removeEventListener('mouseenter', handleMouseEnter);
+        rect.removeEventListener('mousemove', handleMouseMove);
+        rect.removeEventListener('mouseleave', handleMouseLeave);
+      });
+    };
+  }, [contributionSvg]);
 
   return (
     <section id="work" className="projects">
@@ -540,64 +610,6 @@ export default function Projects() {
                 </>
               )}
             </div>
-
-            <div className="contribution-card">
-              <div className="contribution-card-header">
-                <h3>Contribution Heatmap</h3>
-                <p>Actual yearly contribution activity rendered directly from GitHub with fallback public heatmaps.</p>
-              </div>
-
-              {!summaryLoading && (contributionSummary || summaryError) ? (
-                <div className="contribution-summary-grid">
-                  <div>
-                    <strong>{contributionSummary?.totalCommits ?? '--'}</strong>
-                    <span>Total contributions</span>
-                  </div>
-                  <div>
-                    <strong>{contributionSummary?.currentStreak ?? '--'}</strong>
-                    <span>Current streak</span>
-                  </div>
-                  <div>
-                    <strong>{contributionSummary?.longestStreak ?? '--'}</strong>
-                    <span>Longest streak</span>
-                  </div>
-                  <div>
-                    <strong>{contributionSummary?.averageDaily ?? '--'}</strong>
-                    <span>Daily average</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="contribution-summary-grid loading">
-                  <div><strong>--</strong><span>Contributions</span></div>
-                  <div><strong>--</strong><span>Streak</span></div>
-                  <div><strong>--</strong><span>Longest</span></div>
-                  <div><strong>--</strong><span>Daily avg</span></div>
-                </div>
-              )}
-
-              <div className="contribution-graph">
-                {contributionSvg ? (
-                  <div className="contribution-svg" dangerouslySetInnerHTML={{ __html: contributionSvg }} />
-                ) : (
-                  <img
-                    src={contributionGraphUrl}
-                    alt="GitHub contribution heatmap"
-                    onError={() => {
-                      setContributionGraphIndex((currentIndex) => {
-                        if (currentIndex < contributionGraphSources.length - 1) {
-                          return currentIndex + 1;
-                        }
-                        return currentIndex;
-                      });
-                    }}
-                  />
-                )}
-              </div>
-
-              <p className="contribution-note">
-                {summaryError ? '⚠️ Contribution stats unavailable, but your actual heatmap is displayed above.' : 'This shows your actual GitHub contribution heatmap. Yearly stats are fetched from your GitHub account.'}
-              </p>
-            </div>
           </div>
         </div>
 
@@ -605,6 +617,33 @@ export default function Projects() {
           <div className="section-header activity-header">
             <h2>Recent GitHub Activity</h2>
             <p>Latest contributions from my GitHub account</p>
+          </div>
+
+          <div className="activity-heatmap" ref={activityHeatmapRef}>
+            {contributionSvg ? (
+              <>
+                <div className="contribution-svg" dangerouslySetInnerHTML={{ __html: contributionSvg }} />
+                {tooltipVisible && (
+                  <div className="heatmap-tooltip" style={{ left: tooltipCoords.x, top: tooltipCoords.y }}>
+                    {tooltipText}
+                  </div>
+                )}
+              </>
+            ) : (
+              <img
+                src={contributionGraphUrl}
+                alt="GitHub contribution heatmap"
+                className="activity-heatmap-img"
+                onError={() => {
+                  setContributionGraphIndex((currentIndex) => {
+                    if (currentIndex < contributionGraphSources.length - 1) {
+                      return currentIndex + 1;
+                    }
+                    return currentIndex;
+                  });
+                }}
+              />
+            )}
           </div>
 
           {loadingActivity ? (

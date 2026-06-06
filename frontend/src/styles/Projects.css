@@ -809,6 +809,44 @@
     margin-top: 3rem;
   }
 
+  .activity-heatmap {
+    position: relative;
+    width: 100%;
+    margin-bottom: 1.25rem;
+    border-radius: 18px;
+    overflow: visible;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(180deg, rgba(14,12,24,0.95), rgba(17,13,34,0.95));
+    border: 1px solid rgba(196,129,255,0.08);
+  }
+
+  .activity-heatmap-img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .heatmap-tooltip {
+    position: absolute;
+    z-index: 10;
+    pointer-events: none;
+    background: rgba(15, 12, 23, 0.96);
+    color: #fff;
+    border: 1px solid rgba(196, 129, 255, 0.24);
+    padding: 0.6rem 0.85rem;
+    border-radius: 12px;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    transform: translate(-50%, -100%);
+  }
+
+  .activity-heatmap .contribution-svg svg {
+    width: 100% !important;
+    height: auto !important;
+    display: block;
+  }
+
   .github-profile-section {
     margin-top: 2.5rem;
     padding: 2rem;
