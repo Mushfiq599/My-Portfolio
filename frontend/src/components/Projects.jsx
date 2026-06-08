@@ -135,6 +135,11 @@ export default function Projects() {
     y: 10 + (idx % 2) * 28,
   }));
 
+  // Only show the latest 4 push events (commits) in the Recent GitHub Activity
+  const recentCommits = activity
+    .filter((e) => e.type === 'PushEvent')
+    .slice(0, 4);
+
   useEffect(() => {
     const slider = sliderRef.current;
     if (!slider) return;
@@ -246,7 +251,9 @@ export default function Projects() {
     fetchRepos();
     fetchContributionSummary();
     fetchProfile();
-    fetchContributionSvg();
+    fetchContributionSvg().catch((err) => {
+      console.warn('Contribution SVG load failed:', err?.message || err);
+    });
   }, []);
 
   // Fetch SVG (proxy first, then public sources) and recolor to match theme
@@ -651,10 +658,13 @@ export default function Projects() {
           ) : (
             <div className="activity-list">
               {error && <p className="projects-error">{error}</p>}
-              {activity.length > 0 ? (
-                activity.map((event, index) => (
+              {recentCommits.length > 0 ? (
+                recentCommits.map((event, index) => (
                   <div key={`${event.id || index}`} className="activity-card">
                     <p>{formatGitHubEvent(event)}</p>
+                    {event.type === 'PushEvent' && event.payload?.commits?.length > 0 && (
+                      <p className="commit-msg">"{event.payload.commits[0].message}"</p>
+                    )}
                     <a href={`https://github.com/${event.repo?.name}`} target="_blank" rel="noreferrer">
                       View Repository
                     </a>

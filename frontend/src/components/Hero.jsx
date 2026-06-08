@@ -91,7 +91,18 @@ export default function Hero() {
 
         <div className="hero-visual">
           <div className="visual-placeholder">
-            <div className="placeholder-content">
+            <img
+              src={`${process.env.PUBLIC_URL}/images/hero-photo.jpeg`}
+              alt="Mushfiq"
+              className="hero-photo"
+              onError={(e) => {
+                // fallback to placeholder text if image not present
+                e.currentTarget.style.display = 'none';
+                const parent = e.currentTarget.parentNode;
+                if (parent) parent.querySelector('.placeholder-content').style.display = 'flex';
+              }}
+            />
+            <div className="placeholder-content" style={{ display: 'none' }}>
               <span>3D Model</span>
               <p>Mushfiq</p>
             </div>

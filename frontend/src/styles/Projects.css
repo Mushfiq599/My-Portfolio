@@ -1052,6 +1052,19 @@
     line-height: 1.7;
   }
 
+  .activity-card .commit-msg {
+    margin: 0.25rem 0 0.6rem 0;
+    color: rgba(255, 255, 255, 0.88);
+    font-style: italic;
+    background: rgba(255,255,255,0.02);
+    padding: 0.45rem 0.6rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .activity-card a {
     color: var(--primary);
     font-weight: 600;
